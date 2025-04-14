@@ -5,6 +5,7 @@ import com.patientService.patientService.entities.Patient;
 import com.patientService.patientService.dtos.PatientResponseDTO;
 import com.patientService.patientService.exception.EmailAlreadyExistException;
 import com.patientService.patientService.exception.PatientNotFoundException;
+import com.patientService.patientService.grpc.BillingServiceGrpcClient;
 import com.patientService.patientService.mapper.PatientToResponseDTO;
 import com.patientService.patientService.repostiory.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,14 @@ import java.util.List;
 @Service
 public class PatientService {
 
-    @Autowired
-    private PatientRepository patientRepository;
+
+    private final PatientRepository patientRepository;
+    private final BillingServiceGrpcClient billingServiceGrpcClient;
+
+    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
+        this.patientRepository = patientRepository;
+        this.billingServiceGrpcClient = billingServiceGrpcClient;
+    }
 
     public List<PatientResponseDTO> getAllPatients() {
         List<Patient> patients = patientRepository.findAll();
@@ -29,6 +36,7 @@ public class PatientService {
             throw new EmailAlreadyExistException("Email already exists");
         }
         Patient newPatient = patientRepository.save(PatientToResponseDTO.toModel(patientRequestDTO));
+        billingServiceGrpcClient.createBillingAccount(newPatient.getPatientId().toString(), newPatient.getPatientName(), newPatient.getEmail());
         return PatientToResponseDTO.toDTO(newPatient);
     }
 
@@ -43,7 +51,7 @@ public class PatientService {
         return PatientToResponseDTO.toDTO(updatedPatient);
     }
 
-    public PatientResponseDTO deletePatient(String email){
+    public PatientResponseDTO deletePatient(String email) {
         Patient deletedPatient = patientRepository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException("Patient not found"));
         patientRepository.delete(deletedPatient);

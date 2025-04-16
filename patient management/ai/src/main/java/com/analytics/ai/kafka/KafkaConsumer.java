@@ -18,10 +18,19 @@ public class KafkaConsumer {
             PatientEvent patientEvent = PatientEvent.parseFrom(event);
             log.info("Received event: {}", patientEvent.getEmail(),patientEvent.getName());
 
-
         }
         catch (Exception e)
         {
+            log.error("Error while consuming message from Kafka: {}", e.getMessage());
+        }
+    }
+    @KafkaListener(topics = "patient-history", groupId = "analytics-service")
+    public void consumeHistoryEvent(byte[] event) {
+        try {
+            PatientEvent patientEvent = PatientEvent.parseFrom(event);
+            log.info("Received history event: {}", patientEvent.getEmail(),patientEvent.getName());
+
+        } catch (InvalidProtocolBufferException e) {
             log.error("Error while consuming message from Kafka: {}", e.getMessage());
         }
     }

@@ -1,10 +1,10 @@
-package com.api.reactiveGateway;
+package com.aws.infrastructure;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ReactiveGatewayApplicationTests {
+class InfrastructureApplicationTests {
 
 	@Test
 	void contextLoads() {

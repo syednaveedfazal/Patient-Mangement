@@ -6,6 +6,7 @@ import com.expense.tracking.request.RefreshTokenRequestDTO;
 import com.expense.tracking.response.JwtResponseDTO;
 import com.expense.tracking.services.JwtService;
 import com.expense.tracking.services.RefreshTokenService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,8 @@ public class TokenController {
     private JwtService jwtService;
 
     @PostMapping("auth/v1/login")
+    @Operation(summary = "login endpoint")
+
     public ResponseEntity AuthenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getUserName(), authRequestDTO.getPassword()));
         if (authentication.isAuthenticated()) {
@@ -43,6 +46,7 @@ public class TokenController {
     }
 
     @PostMapping("/auth/v1/refreshToken")
+    @Operation(summary = "Refresh token endpoint")
     public JwtResponseDTO refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
         return refreshTokenService.findByToken(refreshTokenRequestDTO.getToken())
                 .map(refreshTokenService::verifyExpiration)

@@ -7,16 +7,18 @@ import com.expense.tracking.services.EmailService;
 import com.expense.tracking.services.JwtService;
 import com.expense.tracking.services.RefreshTokenService;
 import com.expense.tracking.services.UserDetailsServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 public class AuthController {
     @Autowired
@@ -43,6 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/auth/v1/signup")
+    @Operation(summary = "Sign up endpoint")
     public ResponseEntity SignUp(@RequestBody UserInfoDTO userInfoDto) {
         try {
             Boolean isSignUped = userDetailsService.signUpUser(userInfoDto);
@@ -56,6 +59,26 @@ public class AuthController {
                     token(refreshToken.getToken()).build(), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>("Exception in User Service", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/validate")
+    @Operation(summary = "validation Endpoint")
+
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        log.info("in validateToken, authHeader: {}", authHeader);
+        String token = authHeader.substring(7);
+        String username = jwtService.extractUserName(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        boolean isValid = jwtService.validateToken(token, userDetails);
+
+        if (isValid) {
+            return ResponseEntity.ok("Token is valid");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
     }
 }

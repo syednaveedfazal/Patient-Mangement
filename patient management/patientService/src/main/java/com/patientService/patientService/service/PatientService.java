@@ -6,15 +6,18 @@ import com.patientService.patientService.dtos.PatientResponseDTO;
 import com.patientService.patientService.exception.EmailAlreadyExistException;
 import com.patientService.patientService.exception.PatientNotFoundException;
 import com.patientService.patientService.grpc.BillingServiceGrpcClient;
+import com.patientService.patientService.grpc.EmailServiceGrpcClient;
 import com.patientService.patientService.kafka.KafkaProducer;
 import com.patientService.patientService.mapper.PatientToResponseDTO;
 import com.patientService.patientService.repostiory.PatientRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PatientService {
 
@@ -22,11 +25,13 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
     private final KafkaProducer kafkaProducer;
+    private final EmailServiceGrpcClient emailServiceGrpcClient;
 
-    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient, KafkaProducer kafkaProducer) {
+    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient, KafkaProducer kafkaProducer, EmailServiceGrpcClient emailServiceGrpcClient) {
         this.patientRepository = patientRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
         this.kafkaProducer = kafkaProducer;
+        this.emailServiceGrpcClient = emailServiceGrpcClient;
     }
 
     public List<PatientResponseDTO> getAllPatients() {
@@ -39,8 +44,14 @@ public class PatientService {
             throw new EmailAlreadyExistException("Email already exists");
         }
         Patient newPatient = patientRepository.save(PatientToResponseDTO.toModel(patientRequestDTO));
-        billingServiceGrpcClient.createBillingAccount(newPatient.getPatientId().toString(), newPatient.getPatientName(), newPatient.getEmail());
-        kafkaProducer.sendMessage(newPatient);
+//        try {
+            billingServiceGrpcClient.createBillingAccount(newPatient.getPatientId().toString(), newPatient.getPatientName(), newPatient.getEmail());
+            emailServiceGrpcClient.sendEmail(patientRequestDTO.getEmail(),"122",patientRequestDTO.getPatientName(),"ss"); //.sendEmail(patientRequestDTO.getEmail(), patientRequestDTO.getPatientName());
+            kafkaProducer.sendMessage(newPatient);
+//        } catch (Exception e) {
+//            log.warn(e.getMessage().toString());
+//        }
+
         return PatientToResponseDTO.toDTO(newPatient);
     }
 

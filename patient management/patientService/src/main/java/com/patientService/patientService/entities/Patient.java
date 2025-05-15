@@ -30,5 +30,7 @@ public class Patient {
     private LocalDate dateOfBirth;
     @NotNull
     private LocalDate registeredDate;
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
+    private PatientProblemDetails patientProblemDetails;
 
 }

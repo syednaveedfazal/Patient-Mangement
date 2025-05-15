@@ -1,0 +1,57 @@
+server:
+  port: 4004
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    discovery:
+      enabled: false
+
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      routes:
+        - id: patient-service
+          uri: http://patient-service:8080
+          predicates:
+            - Path=/api/v1/patients/**
+          filters:
+            - JwtValidation
+
+        - id: auth-service-route
+          uri: http://auth-service:4005
+          predicates:
+            - Path=/auth/v1/**
+
+auth:
+  service:
+    url: http://auth-service:4005
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      authService:
+        registerHealthIndicator: true
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        eventConsumerBufferSize: 10
+
+  retry:
+    instances:
+      backendService:
+        maxAttempts: 3
+        waitDuration: 1s
+
+  timelimiter:
+    instances:
+      backendService:
+        timeoutDuration: 3s

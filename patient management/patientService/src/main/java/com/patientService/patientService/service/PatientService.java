@@ -72,4 +72,6 @@ public class PatientService {
         patientRepository.delete(deletedPatient);
         return PatientToResponseDTO.toDTO(deletedPatient);
     }
+
+
 }

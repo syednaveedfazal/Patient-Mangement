@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package problem.details;
+option java_multiple_files = true;
+
+message ProblemDetails{
+  string problemId=1;
+  string problemDescription=2;
+  string severity=3;
+}

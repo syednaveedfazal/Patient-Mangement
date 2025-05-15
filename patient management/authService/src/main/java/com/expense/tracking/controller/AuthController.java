@@ -54,7 +54,7 @@ public class AuthController {
             }
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfoDto.getUserName());
             String jwtToken = jwtService.GenerateToken(userInfoDto.getUserName());
-            sendEmail(userInfoDto.getEmail());//sendTemplateMail(userInfoDto.getEmail());
+            //sendEmail(userInfoDto.getEmail());//sendTemplateMail(userInfoDto.getEmail());
             return new ResponseEntity<>(JwtResponseDTO.builder().accessToken(jwtToken).
                     token(refreshToken.getToken()).build(), HttpStatus.OK);
         } catch (Exception ex) {

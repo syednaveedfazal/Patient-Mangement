@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ai
+  ai:
+    ollama:
+      chat:
+        options:
+          model: deepseek-r1:1.5b
+  kafka:
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoint:
+    prometheus:
+      enabled: true
